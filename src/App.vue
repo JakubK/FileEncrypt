@@ -1,10 +1,16 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view />
+    <el-upload
+      class="avatar-uploader"
+      action=""
+      :on-change="handleUploadSuccess"
+      :auto-upload="false"
+      :show-file-list="false"
+    >
+      <i class="el-icon-plus avatar-uploader-icon"></i>
+    </el-upload>
+    {{ fileToEncryptPath }}
+    <el-button @click="encryptFile">Encrypt</el-button>
   </div>
 </template>
 
@@ -30,3 +36,22 @@
   }
 }
 </style>
+
+<script>
+export default {
+  name: "App",
+  data() {
+    return {
+      fileToEncryptPath: "",
+    };
+  },
+  methods: {
+    handleUploadSuccess(file) {
+      this.fileToEncryptPath = file.raw.path;
+    },
+    encryptFile() {
+      console.log("xd");
+    },
+  },
+};
+</script>
