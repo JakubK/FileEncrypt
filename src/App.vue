@@ -1,16 +1,13 @@
 <template>
   <div id="app">
-    <el-upload
-      class="avatar-uploader"
-      action=""
-      :on-change="handleUploadSuccess"
-      :auto-upload="false"
-      :show-file-list="false"
-    >
-      <i class="el-icon-plus avatar-uploader-icon"></i>
-    </el-upload>
-    {{ fileToEncryptPath }}
-    <el-button @click="encryptFile">Encrypt</el-button>
+    <el-menu :router="true" :default-active="activeIndex" mode="horizontal">
+      <el-menu-item index="/">Encrypt File</el-menu-item>
+      <el-menu-item index="2">Decrypt File</el-menu-item>
+      <el-menu-item index="3">Encrypt Recursive</el-menu-item>
+      <el-menu-item index="4">Verify Keys</el-menu-item>
+      <el-menu-item index="/about">About</el-menu-item>
+    </el-menu>
+    <router-view />
   </div>
 </template>
 
@@ -42,16 +39,9 @@ export default {
   name: "App",
   data() {
     return {
-      fileToEncryptPath: "",
+      isCollapse: true,
+      activeIndex: "/",
     };
-  },
-  methods: {
-    handleUploadSuccess(file) {
-      this.fileToEncryptPath = file.raw.path;
-    },
-    encryptFile() {
-      console.log("xd");
-    },
   },
 };
 </script>
