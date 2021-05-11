@@ -28,12 +28,6 @@ export function generateKeys() {
   };
 }
 
-// export function encrypt(toEncrypt, publicKeyString) {
-//   const buffer = Buffer.from(toEncrypt, "utf8");
-//   const encrypted = crypto.publicEncrypt(publicKeyString, buffer);
-//   return encrypted.toString("base64");
-// }
-
 export function encrypt(toEncrypt, relativeOrAbsolutePathToPublicKey) {
   const absolutePath = path.resolve(relativeOrAbsolutePathToPublicKey);
   const publicKey = fs.readFileSync(absolutePath, "utf8");
@@ -41,19 +35,6 @@ export function encrypt(toEncrypt, relativeOrAbsolutePathToPublicKey) {
   const encrypted = crypto.publicEncrypt(publicKey, buffer);
   return encrypted.toString("base64");
 }
-
-// export function decrypt(toDecrypt, privateKeyString) {
-//   console.log(privateKeyString);
-//   const buffer = Buffer.from(toDecrypt, "base64");
-//   const decrypted = crypto.privateDecrypt(
-//     {
-//       key: privateKeyString.toString(),
-//       passphrase: "",
-//     },
-//     buffer
-//   );
-//   return decrypted.toString("utf8");
-// }
 
 export function decrypt(toDecrypt, relativeOrAbsolutePathtoPrivateKey) {
   const absolutePath = path.resolve(relativeOrAbsolutePathtoPrivateKey);
