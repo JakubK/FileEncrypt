@@ -46,8 +46,13 @@ export default {
 
       this.fileList.forEach((file) => {
         const path = file.raw.path;
+        const plain = JSON.stringify({
+          fileName: file.raw.path,
+          content: fs.readFileSync(path, "utf8"),
+        });
+
         const ciph = encrypt(
-          fs.readFileSync(path, "utf8"),
+          plain,
           require("path").dirname(path) + "/public.pem"
         );
         fs.writeFileSync(path + ".enc", ciph, "utf-8");

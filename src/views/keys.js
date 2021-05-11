@@ -40,7 +40,6 @@ export function decrypt(toDecrypt, relativeOrAbsolutePathtoPrivateKey) {
   const absolutePath = path.resolve(relativeOrAbsolutePathtoPrivateKey);
   const privateKey = fs.readFileSync(absolutePath, "utf8");
   const buffer = Buffer.from(toDecrypt, "base64");
-  console.log(privateKey.toString());
   const decrypted = crypto.privateDecrypt(
     {
       key: privateKey.toString(),

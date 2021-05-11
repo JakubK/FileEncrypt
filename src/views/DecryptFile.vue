@@ -61,11 +61,14 @@ export default {
       const fs = require("fs");
       this.fileList.forEach((file) => {
         const path = file.raw.path;
-        const deciph = decrypt(
-          fs.readFileSync(path, "utf8"),
-          require("path").dirname(path) + "/private.pem"
+        const deciph = JSON.parse(
+          decrypt(
+            fs.readFileSync(path, "utf8"),
+            require("path").dirname(path) + "/private.pem"
+          )
         );
-        fs.writeFileSync(path + ".dec", deciph, "utf-8");
+
+        fs.writeFileSync(deciph.fileName, deciph.content, "utf-8");
       });
     },
   },
