@@ -21,6 +21,20 @@
       class="avatar-uploader"
       action=""
       drag
+      :on-change="uploadKey"
+      :auto-upload="false"
+      :show-file-list="false"
+    >
+      <i
+        style="line-height: 178px"
+        class="el-icon-plus avatar-uploader-icon"
+      ></i>
+    </el-upload>
+    <p>Place key</p>
+    <el-upload
+      class="avatar-uploader"
+      action=""
+      drag
       :on-change="uploadPK"
       :auto-upload="false"
       :show-file-list="false"
@@ -45,11 +59,15 @@ export default {
       privateKeyPath: "",
       fileToDecryptPath: "",
       fileList: [],
+      keyPath: "",
     };
   },
   methods: {
     handleUploadSuccess(file) {
       this.fileList.push(file);
+    },
+    uploadKey(file) {
+      this.keyPath = file.raw.path;
     },
     uploadPK(file) {
       this.privateKeyPath = file.raw.path;
@@ -59,16 +77,26 @@ export default {
     },
     decryptFile() {
       const fs = require("fs");
+      const crypto = require("crypto");
+
+      const toDecrypt = fs.readFileSync(this.keyPath, "utf8");
+      const decryptedKey = decrypt(
+        toDecrypt,
+        require("path").dirname(this.fileList[0].raw.path) + "/private.pem"
+      );
+
+      const decipher = crypto.createDecipher("aes-256-cbc", decryptedKey);
+
       this.fileList.forEach((file) => {
         const path = file.raw.path;
-        const deciph = JSON.parse(
-          decrypt(
-            fs.readFileSync(path, "utf8"),
-            require("path").dirname(path) + "/private.pem"
-          )
+        let decrypted = decipher.update(
+          fs.readFileSync(path, "utf8"),
+          "hex",
+          "utf8"
         );
-
-        fs.writeFileSync(deciph.fileName, deciph.content, "utf-8");
+        decrypted += decipher.final("utf8");
+        const plain = JSON.parse(decrypted);
+        fs.writeFileSync(plain.fileName, plain.content, "utf-8");
       });
     },
   },

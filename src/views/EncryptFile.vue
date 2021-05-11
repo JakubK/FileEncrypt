@@ -16,6 +16,7 @@
         class="el-icon-plus avatar-uploader-icon"
       ></i>
     </el-upload>
+    <p>Place files to be encrypted</p>
     <el-button @click="encryptFile">Encrypt</el-button>
   </div>
 </template>
@@ -44,6 +45,10 @@ export default {
 
       generateKeys();
 
+      const crypto = require("crypto");
+
+      const key = crypto.randomBytes(32).toString();
+      const cipher = crypto.createCipher("aes-256-cbc", key);
       this.fileList.forEach((file) => {
         const path = file.raw.path;
         const plain = JSON.stringify({
@@ -51,12 +56,19 @@ export default {
           content: fs.readFileSync(path, "utf8"),
         });
 
-        const ciph = encrypt(
-          plain,
-          require("path").dirname(path) + "/public.pem"
-        );
-        fs.writeFileSync(path + ".enc", ciph, "utf-8");
+        let encrypted = cipher.update(plain, "utf8", "hex");
+        encrypted += cipher.final("hex");
+        fs.writeFileSync(path + ".enc", encrypted, "utf-8");
       });
+      const encryptedKey = encrypt(
+        key,
+        require("path").dirname(this.fileList[0].raw.path) + "/public.pem"
+      );
+      fs.writeFileSync(
+        require("path").dirname(this.fileList[0].raw.path) + "/key",
+        encryptedKey,
+        "utf-8"
+      );
     },
   },
 };
