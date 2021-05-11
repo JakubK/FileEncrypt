@@ -3,60 +3,82 @@
     <el-upload
       class="avatar-uploader"
       action=""
+      drag
+      multiple
       :on-change="handleUploadSuccess"
+      :on-remove="handleRemove"
       :auto-upload="false"
-      :show-file-list="false"
+      :file-list="fileList"
+      :show-file-list="true"
     >
-      <i class="el-icon-plus avatar-uploader-icon"></i>
+      <i
+        style="line-height: 178px"
+        class="el-icon-plus avatar-uploader-icon"
+      ></i>
     </el-upload>
-    {{ fileToEncryptPath }}
     <el-button @click="encryptFile">Encrypt</el-button>
-    <el-input v-model="symKey" placeholder="Please type symmetric key" />
-    <el-input
-      disabled
-      type="textarea"
-      :rows="2"
-      v-model="fileToEncryptPath"
-      placeholder="Private key will appear here"
-    />
-    <el-input
-      disabled
-      type="textarea"
-      :rows="2"
-      placeholder="Public key will appear here"
-    />
   </div>
 </template>
 
 <script>
+import { encrypt, generateKeys } from "./keys";
+
 export default {
   name: "EncryptFile",
   data() {
     return {
-      fileToEncryptPath: "",
-      symKey: "",
+      publicKey: "",
+      privateKey: "",
+      fileList: [],
     };
   },
   methods: {
     handleUploadSuccess(file) {
-      this.fileToEncryptPath = file.raw.path;
+      this.fileList.push(file);
+    },
+    handleRemove(file) {
+      this.fileList = this.fileList.filter((x) => x.uid !== file.uid);
     },
     encryptFile() {
-      console.log("xd");
       const fs = require("fs");
-      const crypto = require("crypto");
 
-      const key = crypto.randomBytes(256);
-      const cipher = crypto.createCipher("aes-256-cbc", key);
-      const input = fs.createReadStream(this.fileToEncryptPath);
-      const output = fs.createWriteStream(this.fileToEncryptPath + ".enc");
+      generateKeys();
 
-      input.pipe(cipher).pipe(output);
-      output.on("finish", () => {
-        console.log("encrypted");
-
+      this.fileList.forEach((file) => {
+        const path = file.raw.path;
+        const ciph = encrypt(
+          fs.readFileSync(path, "utf8"),
+          require("path").dirname(path) + "/public.pem"
+        );
+        fs.writeFileSync(path + ".enc", ciph, "utf-8");
       });
     },
   },
 };
 </script>
+
+<style>
+.avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409eff;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+}
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
+</style>

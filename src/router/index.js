@@ -1,6 +1,7 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import EncryptFile from "../views/EncryptFile.vue";
+import DecryptFile from "../views/DecryptFile.vue";
 
 Vue.use(VueRouter);
 
@@ -9,6 +10,11 @@ const routes = [
     path: "/",
     name: "EncryptFile",
     component: EncryptFile,
+  },
+  {
+    path: "/decrypt",
+    name: "DecryptFile",
+    component: DecryptFile,
   },
   {
     path: "/about",
