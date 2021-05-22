@@ -1,7 +1,7 @@
 const { generateKeyPairSync } = require("crypto");
 const crypto = require("crypto");
 
-export function myGenerateKeys() {
+export function myGenerateKeys(phrase = "xD") {
   const { privateKey, publicKey } = generateKeyPairSync("rsa", {
     modulusLength: 4096,
     publicKeyEncoding: {
@@ -12,7 +12,7 @@ export function myGenerateKeys() {
       type: "pkcs1",
       format: "pem",
       cipher: "aes-256-cbc",
-      passphrase: "xD",
+      passphrase: phrase,
     },
   });
 
@@ -28,12 +28,12 @@ export function myEncrypt(toEncrypt, publicKeyValue) {
   return encrypted.toString("base64");
 }
 
-export function myDecrypt(toDecrypt, privateKeyValue) {
+export function myDecrypt(toDecrypt, privateKeyValue, phrase = "xD") {
   const buffer = Buffer.from(toDecrypt, "base64");
   const decrypted = crypto.privateDecrypt(
     {
       key: privateKeyValue,
-      passphrase: "xD",
+      passphrase: phrase,
     },
     buffer
   );

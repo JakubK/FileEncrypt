@@ -2,13 +2,15 @@
   <div v-loading="loading">
     <br />
     <div v-if="keys.length > 0">
-      <el-button @click="addPair">Add another key pair</el-button>
+      <el-button @click="createDialogVisible = true"
+        >Add another key pair</el-button
+      >
       <br />
       <br />
       <el-radio-group v-model="usedPairIndex">
         <div class="key-pair" v-for="(pair, index) in keys" :key="index">
           <el-radio :label="index">
-            {{ index }}
+            {{ pair.name }}
           </el-radio>
           <el-button
             @click="showDeleteDialog(index)"
@@ -21,8 +23,11 @@
     </div>
     <div v-else>
       No pair to use. Create new pair<br />
-      <el-button @click="addPair">Add new key pair</el-button>
+      <el-button @click="createDialogVisible = true"
+        >Add new key pair</el-button
+      >
     </div>
+
     <el-dialog
       :visible.sync="deleteDialogVisible"
       title="Deleting Keys"
@@ -34,6 +39,29 @@
         <el-button @click="deleteDialogVisible = false">Cancel</el-button>
         <el-button type="danger" @click="deletePair">Confirm</el-button>
       </span>
+    </el-dialog>
+
+    <el-dialog
+      :visible.sync="createDialogVisible"
+      title="New Key pair"
+      width="80%"
+    >
+      <span>Adding new Key pair</span>
+      <p>Random valid key pair will be generated</p>
+      <el-input placeholder="Name for your Pair" v-model="newPair.name" />
+      <br />
+      <p>
+        Optional password. Make sure you have it stored and that its typed
+        correctly
+      </p>
+      <el-input
+        placeholder="Password"
+        show-password
+        v-model="newPair.password"
+      />
+      <br />
+      <br />
+      <el-button type="success" @click="addPair">Create</el-button>
     </el-dialog>
   </div>
 </template>
@@ -48,7 +76,12 @@ export default {
       keys: [],
       loading: false,
       deleteDialogVisible: false,
+      createDialogVisible: false,
       keyToBeDeleted: -1,
+      newPair: {
+        name: "",
+        password: "",
+      },
     };
   },
   watch: {
@@ -68,9 +101,15 @@ export default {
   methods: {
     addPair() {
       this.loading = true;
-      this.keys.push(myGenerateKeys());
+      const name = this.newPair.name;
+      const key = {
+        ...myGenerateKeys(this.newPair.password),
+        name,
+      };
+      this.keys.push(key);
       localStorage.setItem("pairs", JSON.stringify(this.keys));
       this.loading = false;
+      this.createDialogVisible = false;
     },
     showDeleteDialog(index) {
       this.keyToBeDeleted = index;
