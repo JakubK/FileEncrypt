@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import { encrypt, generateKeys } from "./keys";
+import { myGenerateKeys, myEncrypt } from "./keys";
 
 export default {
   name: "EncryptFile",
@@ -42,9 +42,7 @@ export default {
     },
     encryptFile() {
       const fs = require("fs");
-
-      generateKeys();
-
+      const keys = myGenerateKeys();
       const crypto = require("crypto");
 
       const key = crypto.randomBytes(32).toString();
@@ -60,13 +58,17 @@ export default {
         encrypted += cipher.final("hex");
         fs.writeFileSync(path + ".enc", encrypted, "utf-8");
       });
-      const encryptedKey = encrypt(
-        key,
-        require("path").dirname(this.fileList[0].raw.path) + "/public.pem"
-      );
+      const encryptedKey = myEncrypt(key, keys.publicKey);
+
+      //merge private key with symmetric
+      const k = JSON.stringify({
+        privateKey: keys.privateKey,
+        key: encryptedKey,
+      });
+
       fs.writeFileSync(
         require("path").dirname(this.fileList[0].raw.path) + "/key",
-        encryptedKey,
+        k,
         "utf-8"
       );
     },

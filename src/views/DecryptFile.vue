@@ -31,32 +31,17 @@
       ></i>
     </el-upload>
     <p>Place key</p>
-    <el-upload
-      class="avatar-uploader"
-      action=""
-      drag
-      :on-change="uploadPK"
-      :auto-upload="false"
-      :show-file-list="false"
-    >
-      <i
-        style="line-height: 178px"
-        class="el-icon-plus avatar-uploader-icon"
-      ></i>
-    </el-upload>
-    <p>Place private.pem</p>
     <el-button @click="decryptFile">Decrypt</el-button>
   </div>
 </template>
 
 <script>
-import { decrypt } from "./keys";
+import { myDecrypt } from "./keys";
 
 export default {
   name: "DecryptFile",
   data() {
     return {
-      privateKeyPath: "",
       fileToDecryptPath: "",
       fileList: [],
       keyPath: "",
@@ -69,9 +54,6 @@ export default {
     uploadKey(file) {
       this.keyPath = file.raw.path;
     },
-    uploadPK(file) {
-      this.privateKeyPath = file.raw.path;
-    },
     handleRemove(file) {
       this.fileList = this.fileList.filter((x) => x.uid !== file.uid);
     },
@@ -79,11 +61,8 @@ export default {
       const fs = require("fs");
       const crypto = require("crypto");
 
-      const toDecrypt = fs.readFileSync(this.keyPath, "utf8");
-      const decryptedKey = decrypt(
-        toDecrypt,
-        require("path").dirname(this.fileList[0].raw.path) + "/private.pem"
-      );
+      const obj = JSON.parse(fs.readFileSync(this.keyPath, "utf8"));
+      const decryptedKey = myDecrypt(obj.key, obj.privateKey);
 
       const decipher = crypto.createDecipher("aes-256-cbc", decryptedKey);
 
