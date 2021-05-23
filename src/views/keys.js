@@ -1,7 +1,7 @@
 const { generateKeyPairSync } = require("crypto");
 const crypto = require("crypto");
 
-export function myGenerateKeys(phrase = "xD") {
+export function myGenerateKeys(_, phrase = "supersecret") {
   const { privateKey, publicKey } = generateKeyPairSync("rsa", {
     modulusLength: 4096,
     publicKeyEncoding: {
@@ -16,6 +16,17 @@ export function myGenerateKeys(phrase = "xD") {
     },
   });
 
+  // const plaintext = Buffer.from("Hello world!", "utf8");
+  // const enc = crypto.publicEncrypt(publicKey, plaintext);
+  // const dec = crypto.privateDecrypt(
+  //   {
+  //     key: privateKey,
+  //     passphrase: phrase,
+  //   },
+  //   enc
+  // );
+  // console.log(dec.toString("utf-8"));
+
   return {
     privateKey,
     publicKey,
@@ -28,7 +39,7 @@ export function myEncrypt(toEncrypt, publicKeyValue) {
   return encrypted.toString("base64");
 }
 
-export function myDecrypt(toDecrypt, privateKeyValue, phrase = "xD") {
+export function myDecrypt(toDecrypt, privateKeyValue, phrase = "supersecret") {
   const buffer = Buffer.from(toDecrypt, "base64");
   const decrypted = crypto.privateDecrypt(
     {

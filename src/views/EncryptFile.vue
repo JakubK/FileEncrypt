@@ -1,28 +1,32 @@
 <template>
   <div class="encrypt-file">
-    <el-upload
-      class="avatar-uploader"
-      action=""
-      drag
-      multiple
-      :on-change="handleUploadSuccess"
-      :on-remove="handleRemove"
-      :auto-upload="false"
-      :file-list="fileList"
-      :show-file-list="true"
-    >
-      <i
-        style="line-height: 178px"
-        class="el-icon-plus avatar-uploader-icon"
-      ></i>
-    </el-upload>
-    <p>Place files to be encrypted</p>
-    <el-button @click="encryptFile">Encrypt</el-button>
+    <br />
+    <div v-if="usedKey">
+      <el-upload
+        class="avatar-uploader"
+        action=""
+        drag
+        multiple
+        :on-change="handleUploadSuccess"
+        :on-remove="handleRemove"
+        :auto-upload="false"
+        :file-list="fileList"
+        :show-file-list="true"
+      >
+        <i
+          style="line-height: 178px"
+          class="el-icon-plus avatar-uploader-icon"
+        ></i>
+      </el-upload>
+      <p>Place files to be encrypted</p>
+      <el-button @click="encryptFile">Encrypt</el-button>
+    </div>
+    <div v-else>No key selected.</div>
   </div>
 </template>
 
 <script>
-import { myGenerateKeys, myEncrypt } from "./keys";
+import { myEncrypt } from "./keys";
 
 export default {
   name: "EncryptFile",
@@ -33,6 +37,15 @@ export default {
       fileList: [],
     };
   },
+  computed: {
+    usedKey() {
+      return (
+        JSON.parse(localStorage.getItem("pairs"))[
+          JSON.parse(localStorage.getItem("used"))
+        ] ?? null
+      );
+    },
+  },
   methods: {
     handleUploadSuccess(file) {
       this.fileList.push(file);
@@ -42,11 +55,10 @@ export default {
     },
     encryptFile() {
       const fs = require("fs");
-      const keys = myGenerateKeys();
       const crypto = require("crypto");
-
       const key = crypto.randomBytes(32).toString();
       const cipher = crypto.createCipher("aes-256-cbc", key);
+
       this.fileList.forEach((file) => {
         const path = file.raw.path;
         const plain = JSON.stringify({
@@ -58,17 +70,11 @@ export default {
         encrypted += cipher.final("hex");
         fs.writeFileSync(path + ".enc", encrypted, "utf-8");
       });
-      const encryptedKey = myEncrypt(key, keys.publicKey);
-
-      //merge private key with symmetric
-      const k = JSON.stringify({
-        privateKey: keys.privateKey,
-        key: encryptedKey,
-      });
+      const encryptedKey = myEncrypt(key, this.usedKey.publicKey);
 
       fs.writeFileSync(
         require("path").dirname(this.fileList[0].raw.path) + "/key",
-        k,
+        encryptedKey,
         "utf-8"
       );
     },

@@ -1,37 +1,41 @@
 <template>
   <div class="decrypt-file">
-    <el-upload
-      class="avatar-uploader"
-      action=""
-      drag
-      multiple
-      :on-change="handleUploadSuccess"
-      :on-remove="handleRemove"
-      :show-file-list="false"
-      :auto-upload="false"
-      :file-list="fileList"
-    >
-      <i
-        style="line-height: 178px"
-        class="el-icon-plus avatar-uploader-icon"
-      ></i>
-    </el-upload>
-    <p>Place *.enc files</p>
-    <el-upload
-      class="avatar-uploader"
-      action=""
-      drag
-      :on-change="uploadKey"
-      :auto-upload="false"
-      :show-file-list="false"
-    >
-      <i
-        style="line-height: 178px"
-        class="el-icon-plus avatar-uploader-icon"
-      ></i>
-    </el-upload>
-    <p>Place key</p>
-    <el-button @click="decryptFile">Decrypt</el-button>
+    <br />
+    <div v-if="usedKey">
+      <el-upload
+        class="avatar-uploader"
+        action=""
+        drag
+        multiple
+        :on-change="handleUploadSuccess"
+        :on-remove="handleRemove"
+        :show-file-list="false"
+        :auto-upload="false"
+        :file-list="fileList"
+      >
+        <i
+          style="line-height: 178px"
+          class="el-icon-plus avatar-uploader-icon"
+        ></i>
+      </el-upload>
+      <p>Place *.enc files</p>
+      <el-upload
+        class="avatar-uploader"
+        action=""
+        drag
+        :on-change="uploadKey"
+        :auto-upload="false"
+        :show-file-list="false"
+      >
+        <i
+          style="line-height: 178px"
+          class="el-icon-plus avatar-uploader-icon"
+        ></i>
+      </el-upload>
+      <p>Place key</p>
+      <el-button @click="decryptFile">Decrypt</el-button>
+    </div>
+    <div v-else>No key selected</div>
   </div>
 </template>
 
@@ -47,6 +51,15 @@ export default {
       keyPath: "",
     };
   },
+  computed: {
+    usedKey() {
+      return (
+        JSON.parse(localStorage.getItem("pairs"))[
+          JSON.parse(localStorage.getItem("used"))
+        ] ?? null
+      );
+    },
+  },
   methods: {
     handleUploadSuccess(file) {
       this.fileList.push(file);
@@ -61,9 +74,8 @@ export default {
       const fs = require("fs");
       const crypto = require("crypto");
 
-      const obj = JSON.parse(fs.readFileSync(this.keyPath, "utf8"));
-      const decryptedKey = myDecrypt(obj.key, obj.privateKey);
-
+      const encryptedKey = fs.readFileSync(this.keyPath, "utf8");
+      const decryptedKey = myDecrypt(encryptedKey, this.usedKey.privateKey);
       const decipher = crypto.createDecipher("aes-256-cbc", decryptedKey);
 
       this.fileList.forEach((file) => {

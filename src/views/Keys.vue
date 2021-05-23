@@ -51,8 +51,8 @@
       <el-input placeholder="Name for your Pair" v-model="newPair.name" />
       <br />
       <p>
-        Optional password. Make sure you have it stored and that its typed
-        correctly
+        Optional decrypt password. Make sure you have it stored and that its
+        typed correctly. You'll be asked for it.
       </p>
       <el-input
         placeholder="Password"
@@ -102,8 +102,12 @@ export default {
     addPair() {
       this.loading = true;
       const name = this.newPair.name;
+      const pass =
+        this.newPair.password.length > 0
+          ? this.newPair.password.length
+          : "supersecret";
       const key = {
-        ...myGenerateKeys(this.newPair.password),
+        ...myGenerateKeys("", pass),
         name,
       };
       this.keys.push(key);
