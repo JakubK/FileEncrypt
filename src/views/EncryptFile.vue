@@ -28,6 +28,10 @@
 <script>
 import { myEncrypt } from "./keys";
 
+const fs = require("fs");
+const crypto = require("crypto");
+const prepend = require("prepend-file");
+
 export default {
   name: "EncryptFile",
   data() {
@@ -54,13 +58,11 @@ export default {
       this.fileList = this.fileList.filter((x) => x.uid !== file.uid);
     },
     encryptFile() {
-      const fs = require("fs");
-      const crypto = require("crypto");
-      const key = crypto.randomBytes(32).toString();
-      const cipher = crypto.createCipher("aes-256-cbc", key);
-
       this.fileList.forEach((file) => {
+        const key = crypto.randomBytes(32).toString();
+        const cipher = crypto.createCipher("aes-256-cbc", key);
         const path = file.raw.path;
+        const encryptedKey = myEncrypt(key, this.usedKey.publicKey);
         const plain = JSON.stringify({
           fileName: file.raw.path,
           content: fs.readFileSync(path, "utf8"),
@@ -68,15 +70,10 @@ export default {
 
         let encrypted = cipher.update(plain, "utf8", "hex");
         encrypted += cipher.final("hex");
-        fs.writeFileSync(path + ".enc", encrypted, "utf-8");
-      });
-      const encryptedKey = myEncrypt(key, this.usedKey.publicKey);
 
-      fs.writeFileSync(
-        require("path").dirname(this.fileList[0].raw.path) + "/key",
-        encryptedKey,
-        "utf-8"
-      );
+        fs.writeFileSync(path + ".enc", encrypted, "utf-8");
+        prepend(path + ".enc",encryptedKey + "\n");
+      });
     },
   },
 };

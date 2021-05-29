@@ -41,6 +41,9 @@
 
 <script>
 import { myDecrypt } from "./keys";
+const fs = require("fs");
+const crypto = require("crypto");
+const firstline = require("firstline");
 
 export default {
   name: "DecryptFile",
@@ -71,17 +74,14 @@ export default {
       this.fileList = this.fileList.filter((x) => x.uid !== file.uid);
     },
     decryptFile() {
-      const fs = require("fs");
-      const crypto = require("crypto");
+      this.fileList.forEach(async (file) => {
+        const encryptedKey = await firstline(file.raw.path);
+        const decryptedKey = myDecrypt(encryptedKey, this.usedKey.privateKey);
+        const decipher = crypto.createDecipher("aes-256-cbc", decryptedKey);
 
-      const encryptedKey = fs.readFileSync(this.keyPath, "utf8");
-      const decryptedKey = myDecrypt(encryptedKey, this.usedKey.privateKey);
-      const decipher = crypto.createDecipher("aes-256-cbc", decryptedKey);
-
-      this.fileList.forEach((file) => {
         const path = file.raw.path;
         let decrypted = decipher.update(
-          fs.readFileSync(path, "utf8"),
+          fs.readFileSync(path, "utf8").split('\n')[1],
           "hex",
           "utf8"
         );
