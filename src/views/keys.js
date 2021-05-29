@@ -16,17 +16,6 @@ export function myGenerateKeys(_, phrase = "supersecret") {
     },
   });
 
-  // const plaintext = Buffer.from("Hello world!", "utf8");
-  // const enc = crypto.publicEncrypt(publicKey, plaintext);
-  // const dec = crypto.privateDecrypt(
-  //   {
-  //     key: privateKey,
-  //     passphrase: phrase,
-  //   },
-  //   enc
-  // );
-  // console.log(dec.toString("utf-8"));
-
   return {
     privateKey,
     publicKey,
