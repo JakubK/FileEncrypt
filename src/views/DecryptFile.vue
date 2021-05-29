@@ -19,23 +19,28 @@
         ></i>
       </el-upload>
       <p>Place *.enc files</p>
-      <el-upload
-        class="avatar-uploader"
-        action=""
-        drag
-        :on-change="uploadKey"
-        :auto-upload="false"
-        :show-file-list="false"
-      >
-        <i
-          style="line-height: 178px"
-          class="el-icon-plus avatar-uploader-icon"
-        ></i>
-      </el-upload>
-      <p>Place key</p>
       <el-button @click="decryptFile">Decrypt</el-button>
     </div>
     <div v-else>No key selected</div>
+
+    <el-dialog
+      :visible.sync="failed"
+      title="Deleting Keys"
+      width="80%"
+    >
+      <span>Files are protected by password</span>
+      <p>Please pass it below</p>
+      <el-input
+        placeholder="Password"
+        show-password
+        v-model="password"
+      />
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="failed = false">Abort</el-button>
+        <el-button type="danger" @click="decryptFile">Retry</el-button>
+      </span>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -51,7 +56,8 @@ export default {
     return {
       fileToDecryptPath: "",
       fileList: [],
-      keyPath: "",
+      failed: false,
+      password: 'supersecret'
     };
   },
   computed: {
@@ -67,28 +73,35 @@ export default {
     handleUploadSuccess(file) {
       this.fileList.push(file);
     },
-    uploadKey(file) {
-      this.keyPath = file.raw.path;
-    },
     handleRemove(file) {
       this.fileList = this.fileList.filter((x) => x.uid !== file.uid);
     },
-    decryptFile() {
-      this.fileList.forEach(async (file) => {
-        const encryptedKey = await firstline(file.raw.path);
-        const decryptedKey = myDecrypt(encryptedKey, this.usedKey.privateKey);
-        const decipher = crypto.createDecipher("aes-256-cbc", decryptedKey);
+    async decryptFile() {
+      this.failed = false;
+      for(let i = 0;i < this.fileList.length; i++)
+      {
+        const file = this.fileList[i];
+        try {
+          const encryptedKey = await firstline(file.raw.path);
+          const decryptedKey = myDecrypt(encryptedKey, this.usedKey.privateKey, this.password);
+          const decipher = crypto.createDecipher("aes-256-cbc", decryptedKey);
 
-        const path = file.raw.path;
-        let decrypted = decipher.update(
-          fs.readFileSync(path, "utf8").split('\n')[1],
-          "hex",
-          "utf8"
-        );
-        decrypted += decipher.final("utf8");
-        const plain = JSON.parse(decrypted);
-        fs.writeFileSync(plain.fileName, plain.content, "utf-8");
-      });
+          const path = file.raw.path;
+          let decrypted = decipher.update(
+            fs.readFileSync(path, "utf8").split('\n')[1],
+            "hex",
+            "utf8"
+          );
+          decrypted += decipher.final("utf8");
+          const plain = JSON.parse(decrypted);
+          fs.writeFileSync(plain.fileName, plain.content, "utf-8");
+        }
+        catch(err) {
+          this.failed = true
+          console.log("break");
+          break;
+        }
+      }
     },
   },
 };

@@ -104,7 +104,7 @@ export default {
       const name = this.newPair.name;
       const pass =
         this.newPair.password.length > 0
-          ? this.newPair.password.length
+          ? this.newPair.password
           : "supersecret";
       const key = {
         ...myGenerateKeys("", pass),

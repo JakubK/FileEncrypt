@@ -67,10 +67,8 @@ export default {
           fileName: file.raw.path,
           content: fs.readFileSync(path, "utf8"),
         });
-
         let encrypted = cipher.update(plain, "utf8", "hex");
         encrypted += cipher.final("hex");
-
         fs.writeFileSync(path + ".enc", encrypted, "utf-8");
         prepend(path + ".enc",encryptedKey + "\n");
       });
