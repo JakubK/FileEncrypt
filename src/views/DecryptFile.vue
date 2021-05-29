@@ -89,7 +89,7 @@ export default {
           const path = file.raw.path;
           let decrypted = decipher.update(
             fs.readFileSync(path, "utf8").split('\n')[1],
-            "hex",
+            "base64",
             "utf8"
           );
           decrypted += decipher.final("utf8");
@@ -98,7 +98,6 @@ export default {
         }
         catch(err) {
           this.failed = true
-          console.log("break");
           break;
         }
       }

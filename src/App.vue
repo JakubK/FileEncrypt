@@ -3,7 +3,6 @@
     <el-menu :router="true" :default-active="activeIndex" mode="horizontal">
       <el-menu-item index="/">Encrypt File</el-menu-item>
       <el-menu-item index="/decrypt">Decrypt File</el-menu-item>
-      <el-menu-item index="3">Encrypt Recursive</el-menu-item>
       <el-menu-item index="/keys">Keys</el-menu-item>
       <el-menu-item index="/about">About</el-menu-item>
     </el-menu>
