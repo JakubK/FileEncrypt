@@ -9,7 +9,6 @@
         multiple
         :on-change="handleUploadSuccess"
         :on-remove="handleRemove"
-        :show-file-list="false"
         :auto-upload="false"
         :file-list="fileList"
       >
@@ -25,7 +24,7 @@
 
     <el-dialog
       :visible.sync="failed"
-      title="Deleting Keys"
+      title="Secured content"
       width="80%"
     >
       <span>Files are protected by password</span>
@@ -49,6 +48,8 @@ import { myDecrypt } from "./keys";
 const fs = require("fs");
 const crypto = require("crypto");
 const firstline = require("firstline");
+
+// const sutil = require('line-stream-util');
 
 export default {
   name: "DecryptFile",
@@ -82,19 +83,19 @@ export default {
       {
         const file = this.fileList[i];
         try {
-          const encryptedKey = await firstline(file.raw.path);
+          const path = file.raw.path;
+          const encryptedKey = await firstline(path);
           const decryptedKey = myDecrypt(encryptedKey, this.usedKey.privateKey, this.password);
           const decipher = crypto.createDecipher("aes-256-cbc", decryptedKey);
 
-          const path = file.raw.path;
           let decrypted = decipher.update(
             fs.readFileSync(path, "utf8").split('\n')[1],
             "base64",
             "utf8"
           );
           decrypted += decipher.final("utf8");
-          const plain = JSON.parse(decrypted);
-          fs.writeFileSync(plain.fileName, plain.content, "utf-8");
+          const [newPath, ...content] = decrypted.split('\n');
+          fs.writeFileSync(newPath, content.join('\n'), "utf-8");
         }
         catch(err) {
           this.failed = true

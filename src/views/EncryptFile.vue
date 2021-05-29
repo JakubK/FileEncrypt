@@ -11,7 +11,6 @@
         :on-remove="handleRemove"
         :auto-upload="false"
         :file-list="fileList"
-        :show-file-list="true"
       >
         <i
           style="line-height: 178px"
@@ -43,11 +42,12 @@ export default {
   },
   computed: {
     usedKey() {
-      return (
-        JSON.parse(localStorage.getItem("pairs"))[
-          JSON.parse(localStorage.getItem("used"))
-        ] ?? null
-      );
+      const pairs = JSON.parse(localStorage.getItem("pairs"));
+      if(pairs) {
+        const used = JSON.parse(localStorage.getItem("used"));
+        return pairs[used] ?? null;
+      }
+      return null;
     },
   },
   methods: {
@@ -61,16 +61,23 @@ export default {
       this.fileList.forEach((file) => {
         const key = crypto.randomBytes(32).toString();
         const cipher = crypto.createCipher("aes-256-cbc", key);
+        cipher.setEncoding('base64');
         const path = file.raw.path;
         const encryptedKey = myEncrypt(key, this.usedKey.publicKey);
-        const plain = JSON.stringify({
-          fileName: file.raw.path,
-          content: fs.readFileSync(path, "utf8"),
+
+        if(fs.existsSync(path + '.enc'))
+          fs.unlinkSync(path + '.enc');
+        const input = fs.createReadStream(path);
+        const output = fs.createWriteStream(path + '.enc', {
+          flags: 'a'
         });
-        let encrypted = cipher.update(plain, "utf8", "base64");
-        encrypted += cipher.final("base64");
-        fs.writeFileSync(path + ".enc", encrypted, "utf-8");
-        prepend(path + ".enc",encryptedKey + "\n");
+        input.push(file.raw.path + '\n');
+        input.pipe(cipher) //content
+          .pipe(output);
+
+        output.on('finish', () => {
+          prepend(path + ".enc",encryptedKey + "\n"); //key
+        })
       });
     },
   },
