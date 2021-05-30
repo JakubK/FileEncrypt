@@ -49,8 +49,6 @@ const fs = require("fs");
 const crypto = require("crypto");
 const firstline = require("firstline");
 
-// const sutil = require('line-stream-util');
-
 export default {
   name: "DecryptFile",
   data() {
@@ -63,11 +61,12 @@ export default {
   },
   computed: {
     usedKey() {
-      return (
-        JSON.parse(localStorage.getItem("pairs"))[
-          JSON.parse(localStorage.getItem("used"))
-        ] ?? null
-      );
+      const pairs = JSON.parse(localStorage.getItem("pairs"));
+      if(pairs) {
+        const used = JSON.parse(localStorage.getItem("used"));
+        return pairs[used] ?? null;
+      }
+      return null;
     },
   },
   methods: {
@@ -87,7 +86,6 @@ export default {
           const encryptedKey = await firstline(path);
           const decryptedKey = myDecrypt(encryptedKey, this.usedKey.privateKey, this.password);
           const decipher = crypto.createDecipher("aes-256-cbc", decryptedKey);
-
           let decrypted = decipher.update(
             fs.readFileSync(path, "utf8").split('\n')[1],
             "base64",
@@ -98,6 +96,7 @@ export default {
           fs.writeFileSync(newPath, content.join('\n'), "utf-8");
         }
         catch(err) {
+          console.log(err);
           this.failed = true
           break;
         }
